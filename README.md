@@ -101,7 +101,8 @@ Note:
 
 - Apple Silicon Mac
 - macOS 14.0+
-- Xcode 16.x or another Swift 6 toolchain that can build the package
+- Xcode 16.x (recommended; required for `./scripts/build.sh`)
+- Metal toolchain component (`metal`/`metallib`); `./scripts/build.sh` will attempt `xcodebuild -downloadComponent MetalToolchain` if it is missing
 - Network access on first run unless the weights are already cached locally
 
 ### Build
@@ -115,6 +116,8 @@ Note:
 ```bash
 swift test
 ```
+
+Note: SwiftPM-built executables (`swift build` / `swift run`) need `mlx.metallib` next to the binary. See `docs/DEVELOPMENT.md` for the SwiftPM workflow (`./scripts/build_mlx_metallib.sh`).
 
 ### Run
 

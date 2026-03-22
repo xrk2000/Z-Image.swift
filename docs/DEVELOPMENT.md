@@ -4,43 +4,78 @@ This document covers the current contributor workflow: build, test, format, rele
 
 ## Build
 
-Default release-path build:
+This repo supports two build toolchains:
+
+- `xcodebuild` for production/release builds (matches CI packaging)
+- SwiftPM (`swift build` / `swift test`) for rapid iteration and tests
+
+### Production / Release Builds (xcodebuild)
+
+Default release-path build (matches CI packaging):
 
 ```bash
 ./scripts/build.sh
 ```
 
-SwiftPM can also build the staging executable directly:
+`scripts/build.sh` is a thin `xcodebuild` wrapper that:
 
-```bash
-swift build --product ZImageServe
-```
+- validates `xcodebuild`/`xcrun`/`xcode-select` are configured
+- ensures the Metal compiler tools (`metal`, `metallib`) are available
+  - if missing, it attempts `xcodebuild -downloadComponent MetalToolchain`
+- enables non-interactive SwiftPM build-tool plugins for Xcode builds (MLX shader preparation)
+- builds all workspace schemes except `*-Package` (override via `SCHEMES=...`)
 
-Override the derived-data path or configuration when needed:
+Common overrides:
 
 ```bash
 DERIVED_DATA_PATH=./dist ./scripts/build.sh
 CONFIGURATION=Debug ./scripts/build.sh
+SCHEMES="ZImageCLI ZImageServe" ./scripts/build.sh
+DESTINATION='platform=macOS,arch=arm64' ./scripts/build.sh
 ```
 
-Equivalent explicit command:
+Equivalent explicit command (single scheme):
 
 ```bash
-xcodebuild build -scheme ZImageCLI -configuration Release -destination 'platform=macOS' -derivedDataPath ./dist -skipPackagePluginValidation ENABLE_PLUGIN_PREPAREMLSHADERS=YES CLANG_COVERAGE_MAPPING=NO
+xcodebuild build \
+  -scheme ZImageCLI \
+  -configuration Release \
+  -destination 'platform=macOS,arch=arm64' \
+  -derivedDataPath .build/xcode \
+  -skipPackagePluginValidation \
+  ENABLE_PLUGIN_PREPAREMLSHADERS=YES \
+  CLANG_COVERAGE_MAPPING=NO
 ```
 
-`scripts/build.sh` uses the same non-interactive plugin flags as CI so local scripted builds match the release path more closely.
+Built binaries land under:
 
-### SwiftPM-Only Binary Builds
+- `.build/xcode/Build/Products/<Debug|Release>/`
 
-If you intentionally build the CLI with `swift build`, you may also need to colocate `mlx.metallib`:
+### Rapid Development Builds (SwiftPM)
+
+SwiftPM is the fast path for tests and local development builds:
 
 ```bash
-swift build -c debug
+swift test
+swift build --product ZImageServe
+```
+
+Important: `mlx-swift`'s SwiftPM build does **not** emit a default Metal shader library.
+The first time you run a SwiftPM-built executable (including via `swift run`), it can fail until you build and install `mlx.metallib` next to the binary:
+
+```bash
+swift build -c debug --product ZImageCLI
 ./scripts/build_mlx_metallib.sh --configuration debug
+.build/debug/ZImageCLI --help
 ```
 
-That workflow is mainly for local experimentation. The default repo path is still the Xcode build above.
+`./scripts/build_mlx_metallib.sh` uses the Metal toolchain (`xcrun metal` / `xcrun metallib`). If those tools are missing, install the Xcode Metal toolchain component:
+
+```bash
+xcodebuild -downloadComponent MetalToolchain
+```
+
+The default repo path for production binaries is still the Xcode build above.
 
 ## Tests
 
@@ -132,7 +167,7 @@ When changing `ZImageControlPipeline`, ControlNet loading, or the VAE encode/dec
 
 ```bash
 swift test
-xcodebuild build -scheme ZImageCLI -configuration Debug -destination 'platform=macOS' -derivedDataPath .build/xcode
+SCHEMES=ZImageCLI CONFIGURATION=Debug ./scripts/build.sh
 .build/xcode/Build/Products/Debug/ZImageCLI control \
   --prompt "memory validation" \
   --control-image images/canny.jpg \
@@ -177,20 +212,20 @@ The current follow-up summary lives in [dev_plans/controlnet-memory-followup.md]
 When changing `ZImageServe`, the CLI shared layer, or the serving residency policy, keep a repeated-request probe in the loop:
 
 ```bash
-swift build --product ZImageServe
+SCHEMES=ZImageServe CONFIGURATION=Debug ./scripts/build.sh
 SOCKET=/tmp/zimage-serve-stage.sock
-.build/debug/ZImageServe serve \
+.build/xcode/Build/Products/Debug/ZImageServe serve \
   --socket "$SOCKET" \
   --residency-policy adaptive \
   --warm-model mzbac/z-image-turbo-8bit &
 
-.build/debug/ZImageServe --socket "$SOCKET" \
+.build/xcode/Build/Products/Debug/ZImageServe --socket "$SOCKET" \
   -p "a red apple on black velvet" \
   -m mzbac/z-image-turbo-8bit \
   -W 256 -H 256 -s 1 --no-progress \
   -o /tmp/zimage-stage-1.png
 
-.build/debug/ZImageServe --socket "$SOCKET" \
+.build/xcode/Build/Products/Debug/ZImageServe --socket "$SOCKET" \
   -p "a red apple on black velvet" \
   -m mzbac/z-image-turbo-8bit \
   -W 256 -H 256 -s 1 --no-progress \

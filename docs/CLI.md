@@ -12,10 +12,19 @@ Fast path:
 ./scripts/build.sh
 ```
 
+`./scripts/build.sh` wraps `xcodebuild`, ensures the Metal toolchain is available (`metal`/`metallib`), and applies the same non-interactive plugin settings used in CI.
+
 Explicit build command:
 
 ```bash
-xcodebuild build -scheme ZImageCLI -configuration Release -destination 'platform=macOS' -derivedDataPath .build/xcode -skipPackagePluginValidation ENABLE_PLUGIN_PREPAREMLSHADERS=YES CLANG_COVERAGE_MAPPING=NO
+xcodebuild build \
+  -scheme ZImageCLI \
+  -configuration Release \
+  -destination 'platform=macOS,arch=arm64' \
+  -derivedDataPath .build/xcode \
+  -skipPackagePluginValidation \
+  ENABLE_PLUGIN_PREPAREMLSHADERS=YES \
+  CLANG_COVERAGE_MAPPING=NO
 ```
 
 Run from the release products directory:

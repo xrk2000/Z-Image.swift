@@ -84,16 +84,31 @@ Default release build:
 ./scripts/build.sh
 ```
 
+`scripts/build.sh` is the production/release build path: it wraps `xcodebuild`, ensures the Metal toolchain (`metal`/`metallib`) is available, and builds all workspace schemes except `*-Package` (override via `SCHEMES=...`).
+
 Default verification:
 
 ```bash
 swift test
 ```
 
+Note: running SwiftPM-built executables (including via `swift run`) can fail until `mlx.metallib` is built and placed next to the SwiftPM binary output directory. Use:
+
+```bash
+./scripts/build_mlx_metallib.sh --configuration debug
+```
+
 CI-like release-path build:
 
 ```bash
 DERIVED_DATA_PATH=./dist ./scripts/build.sh
+```
+
+Debug or one-scheme builds:
+
+```bash
+CONFIGURATION=Debug ./scripts/build.sh
+SCHEMES=ZImageCLI ./scripts/build.sh
 ```
 
 Opt-in heavier suites:
