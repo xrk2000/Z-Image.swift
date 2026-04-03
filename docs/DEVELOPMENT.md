@@ -85,6 +85,23 @@ Default verification path:
 swift test
 ```
 
+### SwiftPM sandbox guard
+
+This repo vendors an in-process Seatbelt sandbox/tripwire (`swiftpm-sandbox-testing`) into the SwiftPM executable and test targets to prevent accidental host mutations during `swift test` / `swift run`.
+
+By default it denies:
+
+- filesystem writes outside the repo workspace (with temp-dir compatibility allowances), and
+- outbound IP networking (unless explicitly enabled).
+
+If you rely on an existing Hugging Face cache under `~/.cache/huggingface/hub`, set this in the invoking shell so cached snapshots remain discoverable even though `HOME` is redirected by the guard:
+
+```bash
+HF_HUB_CACHE="$HOME/.cache/huggingface/hub" swift test
+```
+
+Use `SWIFTPM_SANDBOX_SELFTEST=1` to assert the guard is active at process startup.
+
 The MLX-backed test support prepares the SwiftPM metallib automatically on demand, and the opt-in E2E suite builds the SwiftPM `ZImageCLI` product automatically when needed.
 
 Heavier test suites are opt-in:

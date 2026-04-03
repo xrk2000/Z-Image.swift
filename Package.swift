@@ -36,7 +36,7 @@ let package = Package(
     ),
     .executableTarget(
       name: "ZImageCLI",
-      dependencies: ["ZImageCLICommon"],
+      dependencies: [ "SwiftPMSandboxTestingBootstrap", /* swiftpm-sandbox-testing */ "ZImageCLICommon" ],
       path: "Sources/ZImageCLI"
     ),
     .target(
@@ -51,12 +51,13 @@ let package = Package(
     ),
     .executableTarget(
       name: "ZImageServe",
-      dependencies: ["ZImageCLICommon", "ZImageServeCore"],
+      dependencies: [ "SwiftPMSandboxTestingBootstrap", /* swiftpm-sandbox-testing */ "ZImageCLICommon", "ZImageServeCore" ],
       path: "Sources/ZImageServe"
     ),
     .testTarget(
       name: "ZImageTests",
       dependencies: [
+          "SwiftPMSandboxTestingBootstrap", // swiftpm-sandbox-testing
         "ZImage",
         "ZImageCLICommon",
         "ZImageServeCore",
@@ -68,6 +69,7 @@ let package = Package(
     .testTarget(
       name: "ZImageIntegrationTests",
       dependencies: [
+          "SwiftPMSandboxTestingBootstrap", // swiftpm-sandbox-testing
         "ZImage",
         .product(name: "MLX", package: "mlx-swift"),
       ],
@@ -75,8 +77,15 @@ let package = Package(
     ),
     .testTarget(
       name: "ZImageE2ETests",
-      dependencies: ["ZImage"],
+      dependencies: [ "SwiftPMSandboxTestingBootstrap", /* swiftpm-sandbox-testing */ "ZImage" ],
       path: "Tests/ZImageE2ETests"
     ),
+        // swiftpm-sandbox-testing: begin
+        .target(
+            name: "SwiftPMSandboxTestingBootstrap",
+            path: "Sources/SwiftPMSandboxTestingBootstrap",
+            publicHeadersPath: "include"
+        ),
+        // swiftpm-sandbox-testing: end
   ]
 )
