@@ -20,7 +20,7 @@ Every phase must be evaluated before it is wrapped and committed.
 Repo verification:
 
 ```bash
-swift test
+./scripts/verify_fast.sh
 xcodebuild build -scheme ZImageCLI -configuration Release -destination 'platform=macOS' -derivedDataPath .build/xcode
 ```
 

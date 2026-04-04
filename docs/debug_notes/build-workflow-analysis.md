@@ -36,7 +36,7 @@ The right split for this repo remains:
 - Hardened the integration and E2E test helpers so they prepare `mlx.metallib` automatically when those suites are explicitly enabled.
 - Hardened the E2E helper so it builds the SwiftPM `ZImageCLI` product automatically when an opt-in CLI test is requested.
 - Updated `scripts/build.sh` to use the same non-interactive plugin flags as CI and to accept environment overrides such as `DERIVED_DATA_PATH` and `CONFIGURATION`.
-- Evaluated and removed a temporary `scripts/test.sh` wrapper because it added no behavior beyond `swift test` when invoked from the repo root.
+- Removed the old temporary `scripts/test.sh` wrapper; the repo now uses `./scripts/verify_fast.sh` as the default low-noise SwiftPM verification entrypoint (logs land under `.artifacts/`).
 - Updated CI to:
   - run the SwiftPM verification job on pull requests
   - gate the nightly release job on that verification
@@ -47,10 +47,10 @@ The right split for this repo remains:
 
 Commands run and outcomes:
 
-- `swift test`
+- `./scripts/verify_fast.sh`
   - passed
   - `210` tests executed, `31` skipped, `0` failures
-- `ZIMAGE_RUN_E2E_TESTS=1 swift test --filter CLIEndToEndTests/testHelpCommand`
+- `ZIMAGE_RUN_E2E_TESTS=1 ./scripts/verify_fast.sh --filter CLIEndToEndTests/testHelpCommand`
   - passed
   - verified the opt-in E2E path can build `ZImageCLI` and run without manual prep
 - `DERIVED_DATA_PATH=./dist ./scripts/build.sh`

@@ -56,7 +56,7 @@ Built binaries land under:
 SwiftPM is the fast path for tests and local development builds:
 
 ```bash
-swift test
+./scripts/verify_fast.sh
 swift build --product ZImageServe
 ```
 
@@ -82,7 +82,7 @@ The default repo path for production binaries is still the Xcode build above.
 Default verification path:
 
 ```bash
-swift test
+./scripts/verify_fast.sh
 ```
 
 ### SwiftPM sandbox guard
@@ -97,7 +97,7 @@ By default it denies:
 If you rely on an existing Hugging Face cache under `~/.cache/huggingface/hub`, set this in the invoking shell so cached snapshots remain discoverable even though `HOME` is redirected by the guard:
 
 ```bash
-HF_HUB_CACHE="$HOME/.cache/huggingface/hub" swift test
+HF_HUB_CACHE="$HOME/.cache/huggingface/hub" ./scripts/verify_fast.sh
 ```
 
 Use `SWIFTPM_SANDBOX_SELFTEST=1` to assert the guard is active at process startup.
@@ -112,12 +112,12 @@ Heavier test suites are opt-in:
 Enable the heavier suites explicitly:
 
 ```bash
-ZIMAGE_RUN_INTEGRATION_TESTS=1 swift test --filter PipelineIntegrationTests
-ZIMAGE_RUN_INTEGRATION_TESTS=1 swift test --filter ControlNetIntegrationTests
-ZIMAGE_RUN_INTEGRATION_TESTS=1 swift test --filter LoRAIntegrationTests
-ZIMAGE_RUN_INTEGRATION_TESTS=1 swift test --filter PerformanceTests
-ZIMAGE_RUN_E2E_TESTS=1 swift test --filter CLIEndToEndTests
-ZIMAGE_RUN_E2E_TESTS=1 swift test --filter ServeEndToEndTests
+HF_HUB_CACHE="$HOME/.cache/huggingface/hub" ZIMAGE_RUN_INTEGRATION_TESTS=1 ./scripts/verify_fast.sh --filter PipelineIntegrationTests
+HF_HUB_CACHE="$HOME/.cache/huggingface/hub" ZIMAGE_RUN_INTEGRATION_TESTS=1 ./scripts/verify_fast.sh --filter ControlNetIntegrationTests
+HF_HUB_CACHE="$HOME/.cache/huggingface/hub" ZIMAGE_RUN_INTEGRATION_TESTS=1 ./scripts/verify_fast.sh --filter LoRAIntegrationTests
+HF_HUB_CACHE="$HOME/.cache/huggingface/hub" ZIMAGE_RUN_INTEGRATION_TESTS=1 ./scripts/verify_fast.sh --filter PerformanceTests
+HF_HUB_CACHE="$HOME/.cache/huggingface/hub" ZIMAGE_RUN_E2E_TESTS=1 ./scripts/verify_fast.sh --filter CLIEndToEndTests
+HF_HUB_CACHE="$HOME/.cache/huggingface/hub" ZIMAGE_RUN_E2E_TESTS=1 ./scripts/verify_fast.sh --filter ServeEndToEndTests
 ```
 
 `ZImageE2ETests` use the `ZImageCLI` executable built by the same SwiftPM stack as `swift test`. They do not invoke `xcodebuild` internally.
@@ -127,22 +127,25 @@ Additional integration-test knobs:
 
 - `ZIMAGE_BASE_SMOKE_MODEL`: optional local override for the Base smoke test snapshot path
 - `ZIMAGE_TEST_LORA_PATH`: optional local LoRA path override for `LoRAIntegrationTests`
+  - Recommended when running under the SwiftPM sandbox guard: LoRA tests can default to a Hugging Face LoRA repo id, and networking is denied by default.
 
 ### Opt-In Base Smoke Test
 
 For a real-model Base sanity check without enabling the full integration suite by default:
 
 ```bash
+HF_HUB_CACHE="$HOME/.cache/huggingface/hub" \
 ZIMAGE_RUN_INTEGRATION_TESTS=1 \
 ZIMAGE_RUN_BASE_SMOKE=1 \
 ZIMAGE_BASE_SMOKE_MODEL="$HOME/.cache/huggingface/hub/models--Tongyi-MAI--Z-Image/snapshots/04cc4abb7c5069926f75c9bfde9ef43d49423021" \
-swift test --filter PipelineIntegrationTests/testBaseModelSmokeGeneration
+./scripts/verify_fast.sh --filter PipelineIntegrationTests/testBaseModelSmokeGeneration
 ```
 
 Notes:
 
 - `ZIMAGE_RUN_BASE_SMOKE=1` is required; otherwise the test skips.
 - `ZIMAGE_BASE_SMOKE_MODEL` is optional. When omitted, the test uses `Tongyi-MAI/Z-Image` and resolves it through the normal cache/download path.
+  - When running under the SwiftPM sandbox guard, set `HF_HUB_CACHE="$HOME/.cache/huggingface/hub"` so resolution uses your existing cache instead of attempting a download (network is denied by default).
 
 ## CI And Packaging
 
@@ -156,7 +159,7 @@ Current CI behavior:
 - artifact: `zimage.macos.arm64.zip`
 - release target: GitHub prerelease tag `nightly`
 - smoke checks:
-  - `swift test`
+  - `./scripts/verify_fast.sh`
   - `ZImageCLI --help` from the packaged release directory after `default.metallib` is copied alongside the binary
 
 Source of truth:
@@ -183,7 +186,7 @@ Prefer one detailed explanation in `docs/` and link to it rather than duplicatin
 When changing `ZImageControlPipeline`, ControlNet loading, or the VAE encode/decode path, use the retained high-resolution probe:
 
 ```bash
-swift test
+./scripts/verify_fast.sh
 SCHEMES=ZImageCLI CONFIGURATION=Debug ./scripts/build.sh
 .build/xcode/Build/Products/Debug/ZImageCLI control \
   --prompt "memory validation" \
@@ -268,7 +271,7 @@ Current measured status from the March 13, 2026 validation run on the local cach
 Also keep the staging-daemon lifecycle suite in the loop:
 
 ```bash
-ZIMAGE_RUN_E2E_TESTS=1 swift test --filter ServeEndToEndTests
+HF_HUB_CACHE="$HOME/.cache/huggingface/hub" ZIMAGE_RUN_E2E_TESTS=1 ./scripts/verify_fast.sh --filter ServeEndToEndTests
 ```
 
 Current measured status from the March 13, 2026 operational validation run:

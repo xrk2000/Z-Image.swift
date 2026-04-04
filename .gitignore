@@ -7,6 +7,7 @@ DerivedData/
 
 # Local temp & caches
 .DS_Store
+.artifacts/
 temp/
 *.cache
 *.profraw

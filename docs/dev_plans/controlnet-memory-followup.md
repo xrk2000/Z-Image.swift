@@ -37,7 +37,7 @@ The next meaningful reduction would need to target denoiser residency or offload
 Repo verification:
 
 ```bash
-swift test
+./scripts/verify_fast.sh
 ./scripts/build.sh
 ```
 

@@ -89,7 +89,7 @@ Default release build:
 Default verification:
 
 ```bash
-swift test
+./scripts/verify_fast.sh
 ```
 
 Note: running SwiftPM-built executables (including via `swift run`) can fail until `mlx.metallib` is built and placed next to the SwiftPM binary output directory. Use:
@@ -114,23 +114,24 @@ SCHEMES=ZImageCLI ./scripts/build.sh
 Opt-in heavier suites:
 
 ```bash
-ZIMAGE_RUN_INTEGRATION_TESTS=1 swift test --filter PipelineIntegrationTests
-ZIMAGE_RUN_INTEGRATION_TESTS=1 swift test --filter ControlNetIntegrationTests
-ZIMAGE_RUN_INTEGRATION_TESTS=1 swift test --filter LoRAIntegrationTests
-ZIMAGE_RUN_INTEGRATION_TESTS=1 swift test --filter PerformanceTests
-ZIMAGE_RUN_E2E_TESTS=1 swift test --filter CLIEndToEndTests
-ZIMAGE_RUN_E2E_TESTS=1 swift test --filter ServeEndToEndTests
+HF_HUB_CACHE="$HOME/.cache/huggingface/hub" ZIMAGE_RUN_INTEGRATION_TESTS=1 ./scripts/verify_fast.sh --filter PipelineIntegrationTests
+HF_HUB_CACHE="$HOME/.cache/huggingface/hub" ZIMAGE_RUN_INTEGRATION_TESTS=1 ./scripts/verify_fast.sh --filter ControlNetIntegrationTests
+HF_HUB_CACHE="$HOME/.cache/huggingface/hub" ZIMAGE_RUN_INTEGRATION_TESTS=1 ./scripts/verify_fast.sh --filter LoRAIntegrationTests
+HF_HUB_CACHE="$HOME/.cache/huggingface/hub" ZIMAGE_RUN_INTEGRATION_TESTS=1 ./scripts/verify_fast.sh --filter PerformanceTests
+HF_HUB_CACHE="$HOME/.cache/huggingface/hub" ZIMAGE_RUN_E2E_TESTS=1 ./scripts/verify_fast.sh --filter CLIEndToEndTests
+HF_HUB_CACHE="$HOME/.cache/huggingface/hub" ZIMAGE_RUN_E2E_TESTS=1 ./scripts/verify_fast.sh --filter ServeEndToEndTests
 ```
 
 Opt-in Base smoke test:
 
 ```bash
+HF_HUB_CACHE="$HOME/.cache/huggingface/hub" \
 ZIMAGE_RUN_INTEGRATION_TESTS=1 \
 ZIMAGE_RUN_BASE_SMOKE=1 \
-swift test --filter PipelineIntegrationTests/testBaseModelSmokeGeneration
+./scripts/verify_fast.sh --filter PipelineIntegrationTests/testBaseModelSmokeGeneration
 ```
 
-If a task needs local LoRA integration coverage against a downloaded adapter, `Tests/ZImageIntegrationTests/LoRAIntegrationTests.swift` also honors `ZIMAGE_TEST_LORA_PATH`.
+If you need LoRA integration coverage under the SwiftPM sandbox guard (network denied by default), set `ZIMAGE_TEST_LORA_PATH` to a local adapter path; `Tests/ZImageIntegrationTests/LoRAIntegrationTests.swift` honors it.
 
 ## CI And Release Expectations
 

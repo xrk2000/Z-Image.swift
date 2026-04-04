@@ -114,7 +114,7 @@ Note:
 ### Verify
 
 ```bash
-swift test
+./scripts/verify_fast.sh
 ```
 
 Note: SwiftPM-built executables (`swift build` / `swift run`) need `mlx.metallib` next to the binary. See `docs/DEVELOPMENT.md` for the SwiftPM workflow (`./scripts/build_mlx_metallib.sh`).

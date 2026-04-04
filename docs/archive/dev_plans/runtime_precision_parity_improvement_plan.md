@@ -37,9 +37,9 @@ The audit did not justify a separate `ZImageRopeEmbedder` table-generation chang
 
 Targeted repo checks:
 
-- `swift test --filter ZImageRoPEParityTests`
-- `swift test --filter PipelinePrecisionTests`
-- `swift test --filter QwenEncoderAttentionMaskTests`
+- `./scripts/verify_fast.sh --filter ZImageRoPEParityTests`
+- `./scripts/verify_fast.sh --filter PipelinePrecisionTests`
+- `./scripts/verify_fast.sh --filter QwenEncoderAttentionMaskTests`
 
 Fixed-seed runtime probes:
 
